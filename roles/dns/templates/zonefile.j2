@@ -35,3 +35,20 @@ dns{{ count }}	IN	A	{{ hostvars[hostname].ansible_default_ipv4.address }}
 
 bastion-host	IN 	A	{{ bastion_ip }}
 console		IN 	A	{{ haproxy_vip }}
+
+api          IN      A       {{ public_ip }}
+api-int      IN      A       {{ haproxy_vip }}
+
+*.apps       IN      A       {{ public_ip }}
+
+{% set count = 0 %}
+{% for ip in master_details.iteritems() %}
+etcd-{{ count }}	IN	A	{{ ip }}
+{% set count = count + 1 %}
+{% endfor %}
+
+_etcd-server-ssl._tcp IN SRV 0 10 2380 etcd-0
+_etcd-server-ssl._tcp IN SRV 0 10 2380 etcd-1
+_etcd-server-ssl._tcp IN SRV 0 10 2380 etcd-2
+
+bootstrap-0  IN      A       {{ bootstrap_ip }}

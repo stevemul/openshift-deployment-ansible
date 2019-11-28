@@ -37,6 +37,13 @@
       line: '*.info;mail.none;authpriv.none;cron.none;local2.none    /var/log/messages'
       backrefs: true
 
+- name: Allow port 6443 and 22623
+  command: semanage port -a -t http_port_t -p tcp "{{ item }}"
+  become: true
+  with_items:
+    - 6443
+    - 22623
+  when: inventory_hostname in groups.loadbalancers_controlplane
 
 - name: Allow port 7443 and 7080 to use httpd
   command: semanage port -a -t http_port_t -p tcp "{{ item }}"
@@ -75,7 +82,16 @@
 
 - name: setup firewall - OpenShift API
   firewalld:
-    port: 8443/tcp
+    port: 6443/tcp
+    immediate: true
+    permanent: true
+    state: enabled
+    zone: public
+  when: inventory_hostname in groups.loadbalancers_controlplane
+
+- name: setup firewall - OpenShift API
+  firewalld:
+    port: 22623/tcp
     immediate: true
     permanent: true
     state: enabled
